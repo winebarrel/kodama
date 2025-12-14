@@ -24,10 +24,10 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	for _, q := range r.Question {
 		switch q.Qtype {
 		case dns.TypeNS:
-			if h.Options.NS != "" && dns.CanonicalName(h.Domain) == q.Name {
+			if h.NS != "" && dns.CanonicalName(h.Domain) == q.Name {
 				msg.Answer = append(msg.Answer, &dns.NS{
 					Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300},
-					Ns:  dns.CanonicalName(h.Options.NS),
+					Ns:  dns.CanonicalName(h.NS),
 				})
 			}
 		case dns.TypeA:
