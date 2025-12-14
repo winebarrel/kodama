@@ -109,3 +109,38 @@ func TestResolve_Nil(t *testing.T) {
 		assert.Nil(rr)
 	}
 }
+
+type MockResponseWriter struct {
+	m *dns.Msg
+}
+
+func (*MockResponseWriter) LocalAddr() net.Addr              { return nil }
+func (*MockResponseWriter) RemoteAddr() net.Addr             { return nil }
+func (mock *MockResponseWriter) WriteMsg(msg *dns.Msg) error { mock.m = msg; return nil }
+func (*MockResponseWriter) Write([]byte) (int, error)        { return 0, nil }
+func (*MockResponseWriter) Close() error                     { return nil }
+func (*MockResponseWriter) TsigStatus() error                { return nil }
+func (*MockResponseWriter) TsigTimersOnly(bool)              {}
+func (*MockResponseWriter) Hijack()                          {}
+
+var _ dns.ResponseWriter = &MockResponseWriter{}
+
+func TestServeDNS(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	w := &MockResponseWriter{}
+	msg := &dns.Msg{Question: []dns.Question{{Name: "127-0-0-1.example.com"}}}
+	kodama.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
+
+	answer := w.m.Answer[0]
+	assert.Equal(answer, &dns.A{
+		Hdr: dns.RR_Header{
+			Name: "127-0-0-1.example.com",
+		},
+		A: net.ParseIP("127.0.0.1"),
+	})
+}
