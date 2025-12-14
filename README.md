@@ -1,1 +1,26 @@
 # kodama
+
+[![CI](https://github.com/winebarrel/kodama/actions/workflows/ci.yml/badge.svg)](https://github.com/winebarrel/kodama/actions/workflows/ci.yml)
+
+kodama is a DNS server that returns any private IP address.
+
+## Usage
+
+```
+Usage: kodama --domain=STRING [flags]
+
+Flags:
+  -h, --help             Show help.
+  -d, --domain=STRING    Accepted domain ($KODAMA_DOMAIN).
+  -a, --addr=":53"       Listening address ($KODAMA_ADDR).
+      --version
+```
+
+```
+$ kodama -d example.com &
+[1] 25270
+$ dig @127.0.0.1 +short 127-0-0-1.example.com
+127.0.0.1
+$ dig @127.0.0.1 +short web-192-168-10-1.example.com
+192.168.10.1
+```
