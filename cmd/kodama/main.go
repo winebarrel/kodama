@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"os"
 
 	"github.com/alecthomas/kong"
@@ -12,6 +12,15 @@ import (
 var (
 	version string
 )
+
+func init() {
+	if levelStr := os.Getenv("KODAMA_LOG_LEVEL"); levelStr != "" {
+		var level slog.Level
+		if err := level.UnmarshalText([]byte(levelStr)); err == nil {
+			slog.SetLogLoggerLevel(level)
+		}
+	}
+}
 
 func parseArgs() *kodama.Options {
 	var cli struct {
@@ -34,6 +43,7 @@ func main() {
 	err := server.Start(context.Background())
 
 	if err != nil {
-		log.Fatal(err)
+		slog.Error(err.Error())
+		os.Exit(1)
 	}
 }
