@@ -10,6 +10,9 @@ import (
 
 func TestMain(t *testing.T) {
 	assert := assert.New(t)
+
+	orgArgs := os.Args
+	t.Cleanup(func() { os.Args = orgArgs })
 	os.Args = []string{"kodama", "--version"}
 
 	defer func() {
@@ -22,6 +25,9 @@ func TestMain(t *testing.T) {
 
 func TestParseArgs(t *testing.T) {
 	assert := assert.New(t)
+
+	orgArgs := os.Args
+	t.Cleanup(func() { os.Args = orgArgs })
 	os.Args = []string{"kodama", "--version"}
 
 	defer func() {
