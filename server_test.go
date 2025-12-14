@@ -19,10 +19,7 @@ func TestServerStart_TCP(t *testing.T) {
 	go svr.Start(t.Context())
 	dnsSvr := svr.TCP
 
-	for {
-		if dnsSvr.Listener != nil {
-			break
-		}
+	for dnsSvr.Listener == nil {
 		time.Sleep(100 * time.Millisecond)
 	}
 
@@ -48,10 +45,7 @@ func TestServerStart_UDP(t *testing.T) {
 	go svr.Start(t.Context())
 	dnsSvr := svr.UDP
 
-	for {
-		if dnsSvr.PacketConn != nil {
-			break
-		}
+	for dnsSvr.PacketConn == nil {
 		time.Sleep(100 * time.Millisecond)
 	}
 

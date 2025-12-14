@@ -42,7 +42,7 @@ func (svr *Server) Start(ctx context.Context) error {
 	for _, s := range []*dns.Server{svr.TCP, svr.UDP} {
 		eg.Go(func() error {
 			context.AfterFunc(ctx, func() {
-				s.Shutdown()
+				s.Shutdown() //nolint:errcheck
 			})
 			return s.ListenAndServe()
 		})
