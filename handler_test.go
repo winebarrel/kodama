@@ -271,6 +271,40 @@ func TestResolveTXT_Nil(t *testing.T) {
 	assert.Nil(rr)
 }
 
+func TestResolveCNAME_OK(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		CNAME:  map[string]string{"alias.example.com": "target.example.com"},
+	}}
+
+	q := &dns.Question{
+		Name: "alias.example.com.",
+	}
+	rr := handler.ResolveCNAME(q)
+
+	require.NotNil(rr)
+	assert.Equal(&dns.CNAME{Hdr: dns.RR_Header{Name: "alias.example.com.", Ttl: 300}, Target: "target.example.com"}, rr)
+}
+
+func TestResolveCNAME_Nil(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		CNAME:  map[string]string{"alias1.example.com": "target.example.com"},
+	}}
+
+	q := &dns.Question{
+		Name: "alias.example.com.",
+	}
+	rr := handler.ResolveCNAME(q)
+
+	assert.Nil(rr)
+}
+
 func TestResolveTXT_Extra(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
@@ -414,7 +448,7 @@ func TestServeDNS_NoAnswer(t *testing.T) {
 	assert.Len(w.m.Answer, 0)
 }
 
-func TestServeDNS_CNAME(t *testing.T) {
+func TestServeDNS_CNAME_Nil(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
@@ -429,4 +463,33 @@ func TestServeDNS_CNAME(t *testing.T) {
 
 	require.NotNil(w.m)
 	assert.Len(w.m.Answer, 0)
+}
+
+func TestServeDNS_CNAME_OK(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		CNAME:  map[string]string{"alias.example.com": "target.example.com"},
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "alias.example.com.", Qtype: dns.TypeCNAME, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
+
+	answer := w.m.Answer[0]
+	assert.Equal(answer, &dns.CNAME{
+		Hdr: dns.RR_Header{
+			Name:   "alias.example.com.",
+			Rrtype: dns.TypeCNAME,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		Target: "target.example.com",
+	})
 }
