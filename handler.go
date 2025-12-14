@@ -1,7 +1,6 @@
 package kodama
 
 import (
-	"fmt"
 	"log/slog"
 	"net"
 	"regexp"
@@ -43,12 +42,10 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 
 		if len(rrs) >= 1 {
-			slog.Info(q.String())
-			slog.Info(fmt.Sprintf("%s", rrs))
+			slog.Info("OK", "question", q.String(), "answer", rrs)
 			msg.Answer = append(msg.Answer, rrs...)
 		} else {
-			slog.Debug(q.String())
-			slog.Debug(fmt.Sprintf("%s", rrs))
+			slog.Debug("NOT FOUND", "question", q.String(), "answer", rrs)
 		}
 	}
 
