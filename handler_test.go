@@ -252,7 +252,7 @@ func (*MockResponseWriter) Hijack()                          {}
 
 var _ dns.ResponseWriter = &MockResponseWriter{}
 
-func TestServeDNS(t *testing.T) {
+func TestServeDNS_A(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
@@ -277,6 +277,35 @@ func TestServeDNS(t *testing.T) {
 			Ttl:    0,
 		},
 		A: net.ParseIP("127.0.0.1"),
+	})
+}
+
+func TestServeDNS_NS(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		NS:     map[string]string{"ns.example.com": "203.0.113.0"},
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "example.com.", Qtype: dns.TypeNS, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
+
+	answer := w.m.Answer[0]
+	assert.Equal(answer, &dns.NS{
+		Hdr: dns.RR_Header{
+			Name:   "example.com.",
+			Rrtype: dns.TypeNS,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		Ns: "ns.example.com.",
 	})
 }
 
