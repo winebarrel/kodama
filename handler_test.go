@@ -237,6 +237,40 @@ func TestResolveNS_NoConf(t *testing.T) {
 	assert.Nil(rr)
 }
 
+func TestResolveTXT_OK(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain:  "example.com",
+		Version: "1.2.3",
+	}}
+
+	q := &dns.Question{
+		Name: "example.com.",
+	}
+	rr := handler.ResolveTXT(q)
+
+	require.NotNil(rr)
+	assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: "example.com.", Ttl: 300}, Txt: []string{"kodama-version=1.2.3"}}, rr)
+}
+
+func TestResolveTXT_Nil(t *testing.T) {
+	assert := assert.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain:  "example.com",
+		Version: "1.2.3",
+	}}
+
+	q := &dns.Question{
+		Name: "xxx.example.com.",
+	}
+	rr := handler.ResolveTXT(q)
+
+	assert.Nil(rr)
+}
+
 type MockResponseWriter struct {
 	m *dns.Msg
 }
@@ -307,6 +341,35 @@ func TestServeDNS_NS(t *testing.T) {
 			Ttl:    300,
 		},
 		Ns: "ns.example.com.",
+	})
+}
+
+func TestServeDNS_TXT(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain:  "example.com",
+		Version: "1.2.3",
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "example.com.", Qtype: dns.TypeTXT, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
+
+	answer := w.m.Answer[0]
+	assert.Equal(answer, &dns.TXT{
+		Hdr: dns.RR_Header{
+			Name:   "example.com.",
+			Rrtype: dns.TypeTXT,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		Txt: []string{"kodama-version=1.2.3"},
 	})
 }
 
