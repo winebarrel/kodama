@@ -271,6 +271,24 @@ func TestResolveTXT_Nil(t *testing.T) {
 	assert.Nil(rr)
 }
 
+func TestResolveTXT_Extra(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		TXT:    map[string]string{"spf.example.com": "v=spf1 -all"},
+	}}
+
+	q := &dns.Question{
+		Name: "spf.example.com.",
+	}
+	rr := handler.ResolveTXT(q)
+
+	require.NotNil(rr)
+	assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: "spf.example.com.", Ttl: 300}, Txt: []string{"v=spf1 -all"}}, rr)
+}
+
 type MockResponseWriter struct {
 	m *dns.Msg
 }
