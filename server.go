@@ -25,7 +25,7 @@ func NewServer(options *Options) *Server {
 
 func (svr *Server) Start() error {
 	addr := fmt.Sprintf(":%d", svr.Port)
-	handler := &Handler{}
+	dns.HandleFunc(svr.Domain, ServeDNS)
 	eg, ctx := errgroup.WithContext(context.Background())
 	ctx, cancel := context.WithCancel(ctx)
 
@@ -40,7 +40,7 @@ func (svr *Server) Start() error {
 
 	for _, net := range []string{"udp", "tcp"} {
 		eg.Go(func() error {
-			s := &dns.Server{Addr: addr, Net: net, Handler: handler}
+			s := &dns.Server{Addr: addr, Net: net}
 			context.AfterFunc(ctx, func() {
 				s.Shutdown()
 			})

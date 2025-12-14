@@ -2,19 +2,23 @@ package kodama
 
 import (
 	"net"
+	"regexp"
+	"strings"
 
 	"github.com/miekg/dns"
 )
 
-type Handler struct{}
+var (
+	rIP = regexp.MustCompile(`\b(\d{1,3})-(\d{1,3})-(\d{1,3})-(\d{1,3})$`)
+)
 
-func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
+func ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	msg := &dns.Msg{}
 	msg.SetReply(r)
 	msg.Authoritative = true
 
 	for _, q := range r.Question {
-		rr := h.Resolve(&q)
+		rr := Resolve(&q)
 
 		if rr != nil {
 			msg.Answer = append(msg.Answer, rr)
@@ -24,11 +28,17 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	w.WriteMsg(msg)
 }
 
-// TODO:
-func (*Handler) Resolve(q *dns.Question) *dns.A {
-	ip := net.ParseIP("127.0.0.1")
+func Resolve(q *dns.Question) *dns.A {
+	subdomain := strings.Split(q.Name, ".")[0]
+	m := rIP.FindStringSubmatch(subdomain)
 
-	if ip == nil {
+	if m == nil {
+		return nil
+	}
+
+	ip := net.ParseIP(strings.Join(m[1:], "."))
+
+	if ip == nil || (!ip.IsLoopback() && !ip.IsPrivate()) {
 		return nil
 	}
 
