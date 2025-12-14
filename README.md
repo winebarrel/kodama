@@ -18,7 +18,7 @@ Flags:
       --txt=KEY=VALUE;...      TXT records. (e.g., spf.example.com=...) ($KODAMA_TXT)
       --cname=KEY=VALUE;...    CNAME records. (e.g., alias.example.com=...) ($KODAMA_CNAME)
       --addr=":53"             Listening address ($KODAMA_ADDR).
-      --ttl=300                Dynamic Record TTLL ($KODAMA_TTL).
+      --ttl=300                Dynamic Record TTL ($KODAMA_TTL).
       --version
 ```
 
