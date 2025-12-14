@@ -14,6 +14,10 @@ func TestResolve_OK(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+	}}
+
 	tests := []struct {
 		subdomain string
 		ip        string
@@ -56,7 +60,7 @@ func TestResolve_OK(t *testing.T) {
 		q := &dns.Question{
 			Name: tt.subdomain,
 		}
-		rr := kodama.Resolve(q)
+		rr := handler.Resolve(q)
 		require.NotNil(rr)
 		assert.IsType(&dns.A{}, rr)
 		assert.Equal(net.ParseIP(tt.ip), rr.A)
@@ -65,6 +69,10 @@ func TestResolve_OK(t *testing.T) {
 
 func TestResolve_Nil(t *testing.T) {
 	assert := assert.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+	}}
 
 	tests := []struct {
 		subdomain string
@@ -103,9 +111,10 @@ func TestResolve_Nil(t *testing.T) {
 
 	for _, tt := range tests {
 		q := &dns.Question{
-			Name: tt.subdomain,
+			Name:  tt.subdomain,
+			Qtype: dns.TypeA,
 		}
-		rr := kodama.Resolve(q)
+		rr := handler.Resolve(q)
 		assert.Nil(rr)
 	}
 }
@@ -129,10 +138,14 @@ func TestServeDNS(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+	}}
+
 	w := &MockResponseWriter{}
 	q := dns.Question{Name: "127-0-0-1.example.com", Qtype: dns.TypeA, Qclass: dns.ClassINET}
 	msg := &dns.Msg{Question: []dns.Question{q}}
-	kodama.ServeDNS(w, msg)
+	handler.ServeDNS(w, msg)
 
 	require.NotNil(w.m)
 	require.Len(w.m.Answer, 1)
@@ -147,4 +160,85 @@ func TestServeDNS(t *testing.T) {
 		},
 		A: net.ParseIP("127.0.0.1"),
 	})
+}
+
+func TestServeDNS_CNAME(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "127-0-0-1.example.com", Qtype: dns.TypeCNAME, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	assert.Len(w.m.Answer, 0)
+}
+
+func TestServeDNS_NS(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		NS:     "ns.example.net",
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "example.com.", Qtype: dns.TypeNS, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
+
+	answer := w.m.Answer[0]
+	assert.Equal(answer, &dns.NS{
+		Hdr: dns.RR_Header{
+			Name:   "example.com.",
+			Rrtype: dns.TypeNS,
+			Class:  dns.ClassINET,
+			Ttl:    300,
+		},
+		Ns: "ns.example.net.",
+	})
+}
+
+func TestServeDNS_InvalidNS(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		NS:     "ns.example.net",
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "xxx.example.com.", Qtype: dns.TypeNS, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	assert.Len(w.m.Answer, 0)
+}
+
+func TestServeDNS_NoNSConf(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "example.com.", Qtype: dns.TypeNS, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	assert.Len(w.m.Answer, 0)
 }

@@ -14,7 +14,8 @@ Arguments:
 
 Flags:
   -h, --help          Show help.
-  -a, --addr=":53"    Listening address ($KODAMA_ADDR).
+      --ns=STRING     NS record ($KODAMA_NS).
+      --addr=":53"    Listening address ($KODAMA_ADDR).
       --version
 ```
 
