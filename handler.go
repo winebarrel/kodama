@@ -32,7 +32,6 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			rrs = h.ResolveNS(&q)
 		case dns.TypeA:
 			if rr := h.ResolveA(&q); rr != nil {
-				fmt.Println(rr)
 				rrs = []dns.RR{rr}
 			}
 		}
