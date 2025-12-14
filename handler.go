@@ -1,6 +1,7 @@
 package kodama
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"regexp"
@@ -25,22 +26,20 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	for _, q := range r.Question {
 		log.Println(">", q.String())
 
-		var rr dns.RR
+		var rrs []dns.RR
 		switch q.Qtype {
 		case dns.TypeNS:
-			if h.NS != "" && dns.CanonicalName(h.Domain) == q.Name {
-				rr = &dns.NS{
-					Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300},
-					Ns:  dns.CanonicalName(h.NS),
-				}
-			}
+			rrs = h.ResolveNS(&q)
 		case dns.TypeA:
-			rr = h.Resolve(&q)
+			if rr := h.ResolveA(&q); rr != nil {
+				fmt.Println(rr)
+				rrs = []dns.RR{rr}
+			}
 		}
 
-		if rr != nil {
-			log.Println("<", rr.String())
-			msg.Answer = append(msg.Answer, rr)
+		if len(rrs) >= 1 {
+			log.Printf("< %s", rrs)
+			msg.Answer = append(msg.Answer, rrs...)
 		} else {
 			log.Println("<", "(no response)")
 		}
@@ -49,7 +48,19 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	w.WriteMsg(msg) //nolint:errcheck
 }
 
-func (h *Handler) Resolve(q *dns.Question) dns.RR {
+func (h *Handler) ResolveA(q *dns.Question) dns.RR {
+	for name, ipstr := range h.NS {
+		name = dns.CanonicalName(name)
+
+		if name != q.Name {
+			continue
+		}
+
+		ip := net.ParseIP(ipstr)
+		rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
+		return &dns.A{Hdr: rrh, A: ip}
+	}
+
 	subdomain := strings.Split(q.Name, ".")[0]
 	m := rIP.FindStringSubmatch(subdomain)
 
@@ -65,4 +76,19 @@ func (h *Handler) Resolve(q *dns.Question) dns.RR {
 
 	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 0}
 	return &dns.A{Hdr: rrh, A: ip}
+}
+
+func (h *Handler) ResolveNS(q *dns.Question) []dns.RR {
+	if len(h.NS) == 0 || dns.CanonicalName(h.Domain) != q.Name {
+		return nil
+	}
+
+	rrs := []dns.RR{}
+
+	for name := range h.NS {
+		rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
+		rrs = append(rrs, &dns.NS{Hdr: rrh, Ns: dns.CanonicalName(name)})
+	}
+
+	return rrs
 }
