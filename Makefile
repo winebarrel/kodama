@@ -1,6 +1,5 @@
 .PHONY: all
-all: vet build
-# all: vet test build
+all: vet test build
 
 .PHONY: build
 build:
@@ -10,9 +9,9 @@ build:
 vet:
 	go vet ./...
 
-# .PHONY: test
-# test:
-# 	go test -v ./...
+.PHONY: test
+test:
+	go test -v ./...
 
 .PHONY: lint
 lint:
