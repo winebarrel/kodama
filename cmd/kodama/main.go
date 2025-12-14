@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -29,7 +30,7 @@ func parseArgs() *kodama.Options {
 func main() {
 	options := parseArgs()
 	server := kodama.NewServer(options)
-	err := server.Start()
+	err := server.Start(context.Background())
 
 	if err != nil {
 		log.Fatal(err)
