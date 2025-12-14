@@ -4,6 +4,7 @@ import (
 	"cmp"
 	"net"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/miekg/dns"
@@ -59,13 +60,13 @@ func TestResolveA_OK(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		q := &dns.Question{
-			Name: tt.subdomain,
+		for _, name := range []string{tt.subdomain, strings.ToUpper(tt.subdomain)} {
+			q := &dns.Question{Name: name}
+			rr := handler.ResolveA(q)
+			require.NotNil(rr)
+			assert.IsType(&dns.A{}, rr)
+			assert.Equal(net.ParseIP(tt.ip), rr.(*dns.A).A)
 		}
-		rr := handler.ResolveA(q)
-		require.NotNil(rr)
-		assert.IsType(&dns.A{}, rr)
-		assert.Equal(net.ParseIP(tt.ip), rr.(*dns.A).A)
 	}
 }
 
@@ -147,6 +148,32 @@ func TestResolveA_NS(t *testing.T) {
 	)
 }
 
+func TestResolveA_NS_Upcase(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		NS:     map[string]string{"ns.example.com": "203.0.113.0"},
+	}}
+
+	q := &dns.Question{
+		Name:   "NS.EXAMPLE.COM.",
+		Qtype:  dns.TypeA,
+		Qclass: dns.ClassINET,
+	}
+	rr := handler.ResolveA(q)
+	require.NotNil(rr)
+	assert.IsType(&dns.A{}, rr)
+	assert.Equal(
+		&dns.A{
+			Hdr: dns.RR_Header{Name: "NS.EXAMPLE.COM.", Rrtype: dns.TypeA, Class: dns.ClassINET, Ttl: 300},
+			A:   net.ParseIP("203.0.113.0"),
+		},
+		rr.(*dns.A),
+	)
+}
+
 func TestResolveA_NoNS(t *testing.T) {
 	assert := assert.New(t)
 
@@ -192,17 +219,16 @@ func TestResolveNS_OK(t *testing.T) {
 		},
 	}}
 
-	q := &dns.Question{
-		Name: "example.com.",
+	for _, name := range []string{"example.com.", "EXAMPLE.COM."} {
+		q := &dns.Question{Name: name}
+		rr := handler.ResolveNS(q)
+		require.NotNil(rr)
+		slices.SortFunc(rr, func(i, j dns.RR) int { return cmp.Compare(i.(*dns.NS).Ns, j.(*dns.NS).Ns) })
+		assert.Equal([]dns.RR{
+			&dns.NS{Hdr: dns.RR_Header{Name: name, Ttl: 300}, Ns: "ns1.example.com."},
+			&dns.NS{Hdr: dns.RR_Header{Name: name, Ttl: 300}, Ns: "ns2.example.com."},
+		}, rr)
 	}
-	rr := handler.ResolveNS(q)
-
-	require.NotNil(rr)
-	slices.SortFunc(rr, func(i, j dns.RR) int { return cmp.Compare(i.(*dns.NS).Ns, j.(*dns.NS).Ns) })
-	assert.Equal([]dns.RR{
-		&dns.NS{Hdr: dns.RR_Header{Name: "example.com.", Ttl: 300}, Ns: "ns1.example.com."},
-		&dns.NS{Hdr: dns.RR_Header{Name: "example.com.", Ttl: 300}, Ns: "ns2.example.com."},
-	}, rr)
 }
 
 func TestResolveNS_Nil(t *testing.T) {
@@ -246,13 +272,16 @@ func TestResolveTXT_OK(t *testing.T) {
 		Version: "1.2.3",
 	}}
 
-	q := &dns.Question{
-		Name: "example.com.",
-	}
-	rr := handler.ResolveTXT(q)
+	for _, name := range []string{"example.com.", "EXAMPLE.COM."} {
 
-	require.NotNil(rr)
-	assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: "example.com.", Ttl: 300}, Txt: []string{"kodama-version=1.2.3"}}, rr)
+		q := &dns.Question{
+			Name: name,
+		}
+		rr := handler.ResolveTXT(q)
+
+		require.NotNil(rr)
+		assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: name, Ttl: 300}, Txt: []string{"kodama-version=1.2.3"}}, rr)
+	}
 }
 
 func TestResolveTXT_Nil(t *testing.T) {
@@ -271,6 +300,24 @@ func TestResolveTXT_Nil(t *testing.T) {
 	assert.Nil(rr)
 }
 
+func TestResolveTXT_Extra(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		TXT:    map[string]string{"spf.example.com": "v=spf1 -all"},
+	}}
+
+	for _, name := range []string{"spf.example.com.", "SPF.EXAMPLE.COM."} {
+		q := &dns.Question{Name: name}
+		rr := handler.ResolveTXT(q)
+
+		require.NotNil(rr)
+		assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: name, Ttl: 300}, Txt: []string{"v=spf1 -all"}}, rr)
+	}
+}
+
 func TestResolveCNAME_OK(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
@@ -280,13 +327,13 @@ func TestResolveCNAME_OK(t *testing.T) {
 		CNAME:  map[string]string{"alias.example.com": "target.example.com"},
 	}}
 
-	q := &dns.Question{
-		Name: "alias.example.com.",
-	}
-	rr := handler.ResolveCNAME(q)
+	for _, name := range []string{"alias.example.com.", "ALIAS.EXAMPLE.COM."} {
+		q := &dns.Question{Name: name}
+		rr := handler.ResolveCNAME(q)
 
-	require.NotNil(rr)
-	assert.Equal(&dns.CNAME{Hdr: dns.RR_Header{Name: "alias.example.com.", Ttl: 300}, Target: "target.example.com."}, rr)
+		require.NotNil(rr)
+		assert.Equal(&dns.CNAME{Hdr: dns.RR_Header{Name: name, Ttl: 300}, Target: "target.example.com."}, rr)
+	}
 }
 
 func TestResolveCNAME_Nil(t *testing.T) {
@@ -303,24 +350,6 @@ func TestResolveCNAME_Nil(t *testing.T) {
 	rr := handler.ResolveCNAME(q)
 
 	assert.Nil(rr)
-}
-
-func TestResolveTXT_Extra(t *testing.T) {
-	assert := assert.New(t)
-	require := require.New(t)
-
-	handler := &kodama.Handler{Options: &kodama.Options{
-		Domain: "example.com",
-		TXT:    map[string]string{"spf.example.com": "v=spf1 -all"},
-	}}
-
-	q := &dns.Question{
-		Name: "spf.example.com.",
-	}
-	rr := handler.ResolveTXT(q)
-
-	require.NotNil(rr)
-	assert.Equal(&dns.TXT{Hdr: dns.RR_Header{Name: "spf.example.com.", Ttl: 300}, Txt: []string{"v=spf1 -all"}}, rr)
 }
 
 type MockResponseWriter struct {

@@ -54,10 +54,12 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 }
 
 func (h *Handler) ResolveA(q *dns.Question) dns.RR {
+	qname := dns.CanonicalName(q.Name)
+
 	for name, ipstr := range h.NS {
 		name = dns.CanonicalName(name)
 
-		if name != q.Name {
+		if name != qname {
 			continue
 		}
 
@@ -84,7 +86,9 @@ func (h *Handler) ResolveA(q *dns.Question) dns.RR {
 }
 
 func (h *Handler) ResolveNS(q *dns.Question) []dns.RR {
-	if len(h.NS) == 0 || dns.CanonicalName(h.Domain) != q.Name {
+	qname := dns.CanonicalName(q.Name)
+
+	if len(h.NS) == 0 || dns.CanonicalName(h.Domain) != qname {
 		return nil
 	}
 
@@ -99,16 +103,17 @@ func (h *Handler) ResolveNS(q *dns.Question) []dns.RR {
 }
 
 func (h *Handler) ResolveTXT(q *dns.Question) dns.RR {
+	qname := dns.CanonicalName(q.Name)
 	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
 
-	if dns.CanonicalName(h.Domain) == q.Name {
+	if dns.CanonicalName(h.Domain) == qname {
 		return &dns.TXT{Hdr: rrh, Txt: []string{"kodama-version=" + h.Version}}
 	}
 
 	for name, value := range h.TXT {
 		name := dns.CanonicalName(name)
 
-		if name == q.Name {
+		if name == qname {
 			return &dns.TXT{Hdr: rrh, Txt: []string{value}}
 		}
 	}
@@ -117,12 +122,13 @@ func (h *Handler) ResolveTXT(q *dns.Question) dns.RR {
 }
 
 func (h *Handler) ResolveCNAME(q *dns.Question) dns.RR {
+	qname := dns.CanonicalName(q.Name)
 	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
 
 	for name, value := range h.CNAME {
 		name := dns.CanonicalName(name)
 
-		if name == q.Name {
+		if name == qname {
 			return &dns.CNAME{Hdr: rrh, Target: dns.CanonicalName(value)}
 		}
 	}
