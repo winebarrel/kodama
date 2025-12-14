@@ -111,12 +111,12 @@ func TestResolve_Nil(t *testing.T) {
 }
 
 type MockResponseWriter struct {
-	*dns.Msg
+	m *dns.Msg
 }
 
 func (*MockResponseWriter) LocalAddr() net.Addr              { return nil }
 func (*MockResponseWriter) RemoteAddr() net.Addr             { return nil }
-func (mock *MockResponseWriter) WriteMsg(msg *dns.Msg) error { mock.Msg = msg; return nil }
+func (mock *MockResponseWriter) WriteMsg(msg *dns.Msg) error { mock.m = msg; return nil }
 func (*MockResponseWriter) Write([]byte) (int, error)        { return 0, nil }
 func (*MockResponseWriter) Close() error                     { return nil }
 func (*MockResponseWriter) TsigStatus() error                { return nil }
@@ -133,10 +133,10 @@ func TestServeDNS(t *testing.T) {
 	msg := &dns.Msg{Question: []dns.Question{{Name: "127-0-0-1.example.com"}}}
 	kodama.ServeDNS(w, msg)
 
-	require.NotNil(w.Msg)
-	require.Len(w.Msg.Answer, 1)
+	require.NotNil(w.m)
+	require.Len(w.m.Answer, 1)
 
-	answer := w.Msg.Answer[0]
+	answer := w.m.Answer[0]
 	assert.Equal(answer, &dns.A{
 		Hdr: dns.RR_Header{
 			Name: "127-0-0-1.example.com",
