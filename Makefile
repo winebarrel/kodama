@@ -11,7 +11,7 @@ vet:
 
 .PHONY: test
 test:
-	go test -v ./...
+	go tool gotest -v ./...
 
 .PHONY: lint
 lint:

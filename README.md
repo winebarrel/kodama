@@ -13,10 +13,12 @@ Arguments:
   <domain>    Accepted domain ($KODAMA_DOMAIN).
 
 Flags:
-  -h, --help                Show help.
-      --ns=KEY=VALUE;...    NS record. (e.g., ns.example.com=203.0.113.0) ($KODAMA_NS)
-      --addr=":53"          Listening address ($KODAMA_ADDR).
-      --ttl=300             Record TTL ($KODAMA_TTL).
+  -h, --help                   Show help.
+      --ns=KEY=VALUE;...       NS records. (e.g., ns.example.com=203.0.113.0) ($KODAMA_NS)
+      --txt=KEY=VALUE;...      TXT records. (e.g., spf.example.com=...) ($KODAMA_TXT)
+      --cname=KEY=VALUE;...    CNAME records. (e.g., alias.example.com=...) ($KODAMA_CNAME)
+      --addr=":53"             Listening address ($KODAMA_ADDR).
+      --ttl=300                Dynamic Record TTL ($KODAMA_TTL).
       --version
 ```
 
