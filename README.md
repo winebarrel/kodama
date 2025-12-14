@@ -24,3 +24,9 @@ $ dig @127.0.0.1 +short 127-0-0-1.example.com
 $ dig @127.0.0.1 +short web-192-168-10-1.example.com
 192.168.10.1
 ```
+
+### Run with Docker
+
+```
+$ docker run --rm -p 53:53 -p 53:53/udp ghcr.io/winebarrel/kodama -d example.com
+```
