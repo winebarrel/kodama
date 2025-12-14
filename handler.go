@@ -1,7 +1,8 @@
 package kodama
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 	"net"
 	"regexp"
 	"strings"
@@ -23,8 +24,6 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	msg.Authoritative = true
 
 	for _, q := range r.Question {
-		log.Println(">", q.String())
-
 		var rrs []dns.RR
 		switch q.Qtype {
 		case dns.TypeNS:
@@ -43,10 +42,13 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			}
 		}
 
-		log.Printf("< %s", rrs)
-
 		if len(rrs) >= 1 {
+			slog.Info(q.String())
+			slog.Info(fmt.Sprintf("%s", rrs))
 			msg.Answer = append(msg.Answer, rrs...)
+		} else {
+			slog.Debug(q.String())
+			slog.Debug(fmt.Sprintf("%s", rrs))
 		}
 	}
 
