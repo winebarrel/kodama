@@ -130,7 +130,8 @@ func TestServeDNS(t *testing.T) {
 	require := require.New(t)
 
 	w := &MockResponseWriter{}
-	msg := &dns.Msg{Question: []dns.Question{{Name: "127-0-0-1.example.com"}}}
+	q := dns.Question{Name: "127-0-0-1.example.com", Qtype: dns.TypeA, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
 	kodama.ServeDNS(w, msg)
 
 	require.NotNil(w.m)
@@ -139,7 +140,10 @@ func TestServeDNS(t *testing.T) {
 	answer := w.m.Answer[0]
 	assert.Equal(answer, &dns.A{
 		Hdr: dns.RR_Header{
-			Name: "127-0-0-1.example.com",
+			Name:   "127-0-0-1.example.com",
+			Rrtype: dns.TypeA,
+			Class:  dns.ClassINET,
+			Ttl:    0,
 		},
 		A: net.ParseIP("127.0.0.1"),
 	})
