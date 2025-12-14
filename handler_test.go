@@ -369,26 +369,32 @@ func TestServeDNS_TXT(t *testing.T) {
 	handler := &kodama.Handler{Options: &kodama.Options{
 		Domain:  "example.com",
 		Version: "1.2.3",
+		TXT:     map[string]string{"spf.example.com": "v=spf1 -all"},
 	}}
 
-	w := &MockResponseWriter{}
-	q := dns.Question{Name: "example.com.", Qtype: dns.TypeTXT, Qclass: dns.ClassINET}
-	msg := &dns.Msg{Question: []dns.Question{q}}
-	handler.ServeDNS(w, msg)
+	for name, value := range map[string]string{
+		"example.com.":     "kodama-version=1.2.3",
+		"spf.example.com.": "v=spf1 -all",
+	} {
+		w := &MockResponseWriter{}
+		q := dns.Question{Name: name, Qtype: dns.TypeTXT, Qclass: dns.ClassINET}
+		msg := &dns.Msg{Question: []dns.Question{q}}
+		handler.ServeDNS(w, msg)
 
-	require.NotNil(w.m)
-	require.Len(w.m.Answer, 1)
+		require.NotNil(w.m)
+		require.Len(w.m.Answer, 1)
 
-	answer := w.m.Answer[0]
-	assert.Equal(answer, &dns.TXT{
-		Hdr: dns.RR_Header{
-			Name:   "example.com.",
-			Rrtype: dns.TypeTXT,
-			Class:  dns.ClassINET,
-			Ttl:    300,
-		},
-		Txt: []string{"kodama-version=1.2.3"},
-	})
+		answer := w.m.Answer[0]
+		assert.Equal(answer, &dns.TXT{
+			Hdr: dns.RR_Header{
+				Name:   name,
+				Rrtype: dns.TypeTXT,
+				Class:  dns.ClassINET,
+				Ttl:    300,
+			},
+			Txt: []string{value},
+		})
+	}
 }
 
 func TestServeDNS_NoAnswer(t *testing.T) {
