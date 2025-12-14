@@ -71,7 +71,7 @@ func (h *Handler) ResolveA(q *dns.Question) dns.RR {
 		return nil
 	}
 
-	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 0}
+	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: h.TTL}
 	return &dns.A{Hdr: rrh, A: ip}
 }
 

@@ -258,6 +258,7 @@ func TestServeDNS_A(t *testing.T) {
 
 	handler := &kodama.Handler{Options: &kodama.Options{
 		Domain: "example.com",
+		TTL:    600,
 	}}
 
 	w := &MockResponseWriter{}
@@ -274,7 +275,7 @@ func TestServeDNS_A(t *testing.T) {
 			Name:   "127-0-0-1.example.com",
 			Rrtype: dns.TypeA,
 			Class:  dns.ClassINET,
-			Ttl:    0,
+			Ttl:    600,
 		},
 		A: net.ParseIP("127.0.0.1"),
 	})
