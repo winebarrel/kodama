@@ -2,7 +2,6 @@ package kodama
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
@@ -12,21 +11,23 @@ import (
 )
 
 type Server struct {
-	*Options
+	TCP *dns.Server
+	UDP *dns.Server
 }
 
 func NewServer(options *Options) *Server {
+	dns.HandleFunc(options.Domain, ServeDNS)
+
 	server := &Server{
-		Options: options,
+		TCP: &dns.Server{Addr: options.Addr, Net: "tcp"},
+		UDP: &dns.Server{Addr: options.Addr, Net: "udp"},
 	}
 
 	return server
 }
 
-func (svr *Server) Start() error {
-	addr := fmt.Sprintf(":%d", svr.Port)
-	dns.HandleFunc(svr.Domain, ServeDNS)
-	eg, ctx := errgroup.WithContext(context.Background())
+func (svr *Server) Start(ctx context.Context) error {
+	eg, ctx := errgroup.WithContext(ctx)
 	ctx, cancel := context.WithCancel(ctx)
 
 	{
@@ -38,11 +39,10 @@ func (svr *Server) Start() error {
 		}()
 	}
 
-	for _, net := range []string{"udp", "tcp"} {
+	for _, s := range []*dns.Server{svr.TCP, svr.UDP} {
 		eg.Go(func() error {
-			s := &dns.Server{Addr: addr, Net: net}
 			context.AfterFunc(ctx, func() {
-				s.Shutdown() //nolint:errcheck
+				s.Shutdown()
 			})
 			return s.ListenAndServe()
 		})
