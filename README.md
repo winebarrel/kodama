@@ -7,17 +7,19 @@ kodama is a DNS server that returns any private IP address.
 ## Usage
 
 ```
-Usage: kodama --domain=STRING [flags]
+Usage: kodama <domain> [flags]
+
+Arguments:
+  <domain>    Accepted domain ($KODAMA_DOMAIN).
 
 Flags:
-  -h, --help             Show help.
-  -d, --domain=STRING    Accepted domain ($KODAMA_DOMAIN).
-  -a, --addr=":53"       Listening address ($KODAMA_ADDR).
+  -h, --help          Show help.
+  -a, --addr=":53"    Listening address ($KODAMA_ADDR).
       --version
 ```
 
 ```
-$ kodama -d example.com &
+$ kodama example.com &
 [1] 25270
 $ dig @127.0.0.1 +short 127-0-0-1.example.com
 127.0.0.1
@@ -28,5 +30,5 @@ $ dig @127.0.0.1 +short web-192-168-10-1.example.com
 ### Run with Docker
 
 ```
-$ docker run --rm -p 53:53 -p 53:53/udp ghcr.io/winebarrel/kodama -d example.com
+$ docker run --rm -p 53:53 -p 53:53/udp ghcr.io/winebarrel/kodama example.com
 ```
