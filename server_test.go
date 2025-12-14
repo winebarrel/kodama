@@ -59,5 +59,5 @@ func TestServerStart_UDP(t *testing.T) {
 	require.Len(resp.Answer, 1)
 
 	answer := resp.Answer[0]
-	assert.Equal(answer.String(), "127-0-0-1.example.com.	0	IN	A	127.0.0.1")
+	assert.Equal("127-0-0-1.example.com.	0	IN	A	127.0.0.1", answer.String())
 }
