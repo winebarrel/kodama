@@ -37,11 +37,10 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			}
 		}
 
+		log.Printf("< %s", rrs)
+
 		if len(rrs) >= 1 {
-			log.Printf("< %s", rrs)
 			msg.Answer = append(msg.Answer, rrs...)
-		} else {
-			log.Println("<", "(no response)")
 		}
 	}
 
