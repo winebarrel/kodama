@@ -63,7 +63,7 @@ func TestResolve_OK(t *testing.T) {
 		rr := handler.Resolve(q)
 		require.NotNil(rr)
 		assert.IsType(&dns.A{}, rr)
-		assert.Equal(net.ParseIP(tt.ip), rr.A)
+		assert.Equal(net.ParseIP(tt.ip), rr.(*dns.A).A)
 	}
 }
 

@@ -1,6 +1,7 @@
 package kodama
 
 import (
+	"log"
 	"net"
 	"regexp"
 	"strings"
@@ -22,27 +23,33 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	msg.Authoritative = true
 
 	for _, q := range r.Question {
+		log.Println(">", q.String())
+
+		var rr dns.RR
 		switch q.Qtype {
 		case dns.TypeNS:
 			if h.NS != "" && dns.CanonicalName(h.Domain) == q.Name {
-				msg.Answer = append(msg.Answer, &dns.NS{
+				rr = &dns.NS{
 					Hdr: dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300},
 					Ns:  dns.CanonicalName(h.NS),
-				})
+				}
 			}
 		case dns.TypeA:
-			rr := h.Resolve(&q)
+			rr = h.Resolve(&q)
+		}
 
-			if rr != nil {
-				msg.Answer = append(msg.Answer, rr)
-			}
+		if rr != nil {
+			log.Println("<", rr.String())
+			msg.Answer = append(msg.Answer, rr)
+		} else {
+			log.Println("<", "(no response)")
 		}
 	}
 
 	w.WriteMsg(msg) //nolint:errcheck
 }
 
-func (h *Handler) Resolve(q *dns.Question) *dns.A {
+func (h *Handler) Resolve(q *dns.Question) dns.RR {
 	subdomain := strings.Split(q.Name, ".")[0]
 	m := rIP.FindStringSubmatch(subdomain)
 
