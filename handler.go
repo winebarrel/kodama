@@ -1,7 +1,6 @@
 package kodama
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"regexp"
