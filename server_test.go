@@ -16,7 +16,10 @@ func TestServerStart_TCP(t *testing.T) {
 
 	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0"}
 	svr := kodama.NewServer(options)
-	go svr.Start(t.Context())
+	go func() {
+		err := svr.Start(t.Context())
+		require.NoError(err)
+	}()
 	dnsSvr := svr.TCP
 
 	for dnsSvr.Listener == nil {
@@ -42,7 +45,10 @@ func TestServerStart_UDP(t *testing.T) {
 
 	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0"}
 	svr := kodama.NewServer(options)
-	go svr.Start(t.Context())
+	go func() {
+		err := svr.Start(t.Context())
+		require.NoError(err)
+	}()
 	dnsSvr := svr.UDP
 
 	for dnsSvr.PacketConn == nil {
