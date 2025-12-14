@@ -25,7 +25,7 @@ func ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 		}
 	}
 
-	w.WriteMsg(msg)
+	w.WriteMsg(msg) //nolint:errcheck
 }
 
 func Resolve(q *dns.Question) *dns.A {

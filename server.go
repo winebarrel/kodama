@@ -42,7 +42,7 @@ func (svr *Server) Start() error {
 		eg.Go(func() error {
 			s := &dns.Server{Addr: addr, Net: net}
 			context.AfterFunc(ctx, func() {
-				s.Shutdown()
+				s.Shutdown() //nolint:errcheck
 			})
 			return s.ListenAndServe()
 		})
