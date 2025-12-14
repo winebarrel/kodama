@@ -286,7 +286,7 @@ func TestResolveCNAME_OK(t *testing.T) {
 	rr := handler.ResolveCNAME(q)
 
 	require.NotNil(rr)
-	assert.Equal(&dns.CNAME{Hdr: dns.RR_Header{Name: "alias.example.com.", Ttl: 300}, Target: "target.example.com"}, rr)
+	assert.Equal(&dns.CNAME{Hdr: dns.RR_Header{Name: "alias.example.com.", Ttl: 300}, Target: "target.example.com."}, rr)
 }
 
 func TestResolveCNAME_Nil(t *testing.T) {
@@ -490,6 +490,6 @@ func TestServeDNS_CNAME_OK(t *testing.T) {
 			Class:  dns.ClassINET,
 			Ttl:    300,
 		},
-		Target: "target.example.com",
+		Target: "target.example.com.",
 	})
 }

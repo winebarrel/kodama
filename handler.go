@@ -123,7 +123,7 @@ func (h *Handler) ResolveCNAME(q *dns.Question) dns.RR {
 		name := dns.CanonicalName(name)
 
 		if name == q.Name {
-			return &dns.CNAME{Hdr: rrh, Target: value}
+			return &dns.CNAME{Hdr: rrh, Target: dns.CanonicalName(value)}
 		}
 	}
 
