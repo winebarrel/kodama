@@ -52,14 +52,14 @@ func TestResolve_OK(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, tt := range tests {
 		q := &dns.Question{
-			Name: test.subdomain,
+			Name: tt.subdomain,
 		}
 		rr := kodama.Resolve(q)
 		require.NotNil(rr)
 		assert.IsType(&dns.A{}, rr)
-		assert.Equal(net.ParseIP(test.ip), rr.A)
+		assert.Equal(net.ParseIP(tt.ip), rr.A)
 	}
 }
 
@@ -101,9 +101,9 @@ func TestResolve_Nil(t *testing.T) {
 		},
 	}
 
-	for _, test := range tests {
+	for _, tt := range tests {
 		q := &dns.Question{
-			Name: test.subdomain,
+			Name: tt.subdomain,
 		}
 		rr := kodama.Resolve(q)
 		assert.Nil(rr)
