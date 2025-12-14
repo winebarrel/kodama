@@ -16,6 +16,7 @@ Flags:
   -h, --help                Show help.
       --ns=KEY=VALUE;...    NS record. (e.g., ns.example.com=203.0.113.0) ($KODAMA_NS)
       --addr=":53"          Listening address ($KODAMA_ADDR).
+      --ttl=300             Record TTL ($KODAMA_TTL).
       --version
 ```
 
