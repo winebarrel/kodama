@@ -33,6 +33,10 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 			if rr := h.ResolveA(&q); rr != nil {
 				rrs = []dns.RR{rr}
 			}
+		case dns.TypeTXT:
+			if rr := h.ResolveTXT(&q); rr != nil {
+				rrs = []dns.RR{rr}
+			}
 		}
 
 		log.Printf("< %s", rrs)
@@ -88,4 +92,13 @@ func (h *Handler) ResolveNS(q *dns.Question) []dns.RR {
 	}
 
 	return rrs
+}
+
+func (h *Handler) ResolveTXT(q *dns.Question) dns.RR {
+	if dns.CanonicalName(h.Domain) != q.Name {
+		return nil
+	}
+
+	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
+	return &dns.TXT{Hdr: rrh, Txt: []string{"kodama-version=" + h.Version}}
 }
