@@ -11,7 +11,7 @@ type Options struct {
 	TXT     map[string]string `env:"KODAMA_TXT" help:"TXT records. (e.g., spf.example.com=...)"`
 	CNAME   map[string]string `env:"KODAMA_CNAME" help:"CNAME records. (e.g., alias.example.com=...)"`
 	Addr    string            `default:":53" env:"KODAMA_ADDR" help:"Listening address."`
-	TTL     uint32            `default:"300" env:"KODAMA_TTL" help:"Dynamic Record TTLL."`
+	TTL     uint32            `default:"300" env:"KODAMA_TTL" help:"Dynamic Record TTL."`
 	Version string            `kong:"-"`
 }
 
