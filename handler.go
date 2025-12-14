@@ -95,10 +95,19 @@ func (h *Handler) ResolveNS(q *dns.Question) []dns.RR {
 }
 
 func (h *Handler) ResolveTXT(q *dns.Question) dns.RR {
-	if dns.CanonicalName(h.Domain) != q.Name {
-		return nil
+	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
+
+	if dns.CanonicalName(h.Domain) == q.Name {
+		return &dns.TXT{Hdr: rrh, Txt: []string{"kodama-version=" + h.Version}}
 	}
 
-	rrh := dns.RR_Header{Name: q.Name, Rrtype: q.Qtype, Class: q.Qclass, Ttl: 300}
-	return &dns.TXT{Hdr: rrh, Txt: []string{"kodama-version=" + h.Version}}
+	for name, value := range h.TXT {
+		name := dns.CanonicalName(name)
+
+		if name == q.Name {
+			return &dns.TXT{Hdr: rrh, Txt: []string{value}}
+		}
+	}
+
+	return nil
 }
