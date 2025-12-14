@@ -2,7 +2,7 @@ FROM golang:1.25 AS build
 
 WORKDIR /src
 COPY go.* /src/
-RUN go mod download
+RUN --mount=type=cache,target=/go/pkg/mod go mod download
 
 COPY *.go /src/
 COPY cmd/kodama/*.go /src/cmd/kodama/
