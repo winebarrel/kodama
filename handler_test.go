@@ -169,3 +169,22 @@ func TestServeDNS_Dynamic(t *testing.T) {
 		A: net.ParseIP("127.0.0.1"),
 	})
 }
+
+func TestServeDNS_Dynamic_NotTypeA(t *testing.T) {
+	assert := assert.New(t)
+	require := require.New(t)
+
+	handler := &kodama.Handler{Options: &kodama.Options{
+		Domain: "example.com",
+		TTL:    600,
+		Zone:   &kodama.Zone{},
+	}}
+
+	w := &MockResponseWriter{}
+	q := dns.Question{Name: "127-0-0-1.example.com", Qtype: dns.TypeCNAME, Qclass: dns.ClassINET}
+	msg := &dns.Msg{Question: []dns.Question{q}}
+	handler.ServeDNS(w, msg)
+
+	require.NotNil(w.m)
+	assert.Empty(w.m.Answer)
+}
