@@ -23,20 +23,23 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	msg.Authoritative = true
 
 	for _, q := range r.Question {
+		var rrSet []dns.RR
+
 		if rrs := h.Zone.Resolve(&q); rrs != nil {
-			msg.Answer = append(msg.Answer, rrs...)
+			rrSet = rrs
 		} else {
 			if q.Qtype == dns.TypeA {
 				if rrs := h.ResolveDynamic(&q); rrs != nil {
-					msg.Answer = append(msg.Answer, rrs...)
+					rrSet = rrs
 				}
 			}
 		}
 
-		if len(msg.Answer) >= 1 {
-			slog.Info("OK", "question", q.String(), "answer", msg.Answer)
+		if len(rrSet) >= 1 {
+			slog.Info("OK", "question", q.String(), "answer", rrSet)
+			msg.Answer = append(msg.Answer, rrSet...)
 		} else {
-			slog.Debug("NOT FOUND", "question", q.String(), "answer", msg.Answer)
+			slog.Debug("NOT FOUND", "question", q.String())
 		}
 	}
 
