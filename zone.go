@@ -36,8 +36,9 @@ func NewZone(src string) (*Zone, error) {
 	m := map[string]map[uint16][]dns.RR{}
 
 	for _, rr := range rrs {
-		rrname := rr.Header().Name
-		rrtype := rr.Header().Rrtype
+		h := rr.Header()
+		rrname := h.Name
+		rrtype := h.Rrtype
 		rrsByType, ok := m[rrname]
 
 		if !ok {
