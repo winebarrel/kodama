@@ -1,6 +1,7 @@
 package kodama
 
 import (
+	"log/slog"
 	"net"
 	"regexp"
 	"strings"
@@ -24,13 +25,18 @@ func (h *Handler) ServeDNS(w dns.ResponseWriter, r *dns.Msg) {
 	for _, q := range r.Question {
 		if rrs := h.Zone.Resolve(&q); rrs != nil {
 			msg.Answer = append(msg.Answer, rrs...)
-			continue
+		} else {
+			if q.Qtype == dns.TypeA {
+				if rrs := h.ResolveDynamic(&q); rrs != nil {
+					msg.Answer = append(msg.Answer, rrs...)
+				}
+			}
 		}
 
-		if q.Qtype == dns.TypeA {
-			if rrs := h.ResolveDynamic(&q); rrs != nil {
-				msg.Answer = append(msg.Answer, rrs...)
-			}
+		if len(msg.Answer) >= 1 {
+			slog.Info("OK", "question", q.String(), "answer", msg.Answer)
+		} else {
+			slog.Debug("NOT FOUND", "question", q.String(), "answer", msg.Answer)
 		}
 	}
 
