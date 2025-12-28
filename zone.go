@@ -46,14 +46,14 @@ func NewZone(src string) (*Zone, error) {
 			m[rrname] = rrsByType
 		}
 
-		rrs, ok := rrsByType[rrtype]
+		rrSet, ok := rrsByType[rrtype]
 
 		if !ok {
-			rrs = []dns.RR{}
+			rrSet = []dns.RR{}
 		}
 
-		rrs = append(rrs, rr)
-		rrsByType[rrtype] = rrs
+		rrSet = append(rrSet, rr)
+		rrsByType[rrtype] = rrSet
 	}
 
 	z := &Zone{
