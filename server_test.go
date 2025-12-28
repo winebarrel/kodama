@@ -14,7 +14,7 @@ func TestServerStart_TCP(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0"}
+	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0", Zone: &kodama.Zone{}}
 	svr := kodama.NewServer(options)
 	go func() {
 		err := svr.Start(t.Context())
@@ -43,7 +43,7 @@ func TestServerStart_UDP(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0"}
+	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0", Zone: &kodama.Zone{}}
 	svr := kodama.NewServer(options)
 	go func() {
 		err := svr.Start(t.Context())
@@ -72,7 +72,7 @@ func TestServerStart_NoAnswer(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
-	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0"}
+	options := &kodama.Options{Domain: "example.com", Addr: "127.0.0.1:0", Zone: &kodama.Zone{}}
 	svr := kodama.NewServer(options)
 	go func() {
 		err := svr.Start(t.Context())

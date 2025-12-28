@@ -7,7 +7,7 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY *.go /src/
 COPY cmd/kodama/*.go /src/cmd/kodama/
 ARG KODAMA_VERSION
-RUN CGO_ENABLED=0 go build -o kodama -ldflags "-X main.version=${KODAMA_VERSION}" ./cmd/kodama
+RUN CGO_ENABLED=0 go build -o kodama -ldflags "-X main.version=${KODAMA_VERSION#v}" ./cmd/kodama
 
 FROM gcr.io/distroless/static
 
