@@ -73,7 +73,7 @@ func TestResolveDynamic_OK(t *testing.T) {
 	}
 }
 
-func TestTestResolveDynamic_Nil(t *testing.T) {
+func TestResolveDynamic_Nil(t *testing.T) {
 	handler := &kodama.Handler{Options: &kodama.Options{
 		Domain: "example.com",
 	}}
