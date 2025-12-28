@@ -17,7 +17,7 @@ type Server struct {
 
 func NewServer(options *Options) *Server {
 	handler := &Handler{options}
-	dns.HandleFunc(options.Domain, handler.ServeDNS)
+	dns.Handle(options.Domain, handler)
 
 	server := &Server{
 		TCP: &dns.Server{Addr: options.Addr, Net: "tcp"},

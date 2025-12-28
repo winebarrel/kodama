@@ -38,7 +38,6 @@ func parseArgs() *kodama.Options {
 
 func main() {
 	options := parseArgs()
-	options.Version = version
 	server := kodama.NewServer(options)
 	err := server.Start(context.Background())
 
