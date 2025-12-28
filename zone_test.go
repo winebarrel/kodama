@@ -233,7 +233,7 @@ mail3         IN  A     192.0.2.5             ; IPv4 address for mail3.example.c
 	}
 }
 
-func TestZone_Resolve_NO_Answer(t *testing.T) {
+func TestZone_Resolve_NoAnswer(t *testing.T) {
 	assert := assert.New(t)
 	require := require.New(t)
 
