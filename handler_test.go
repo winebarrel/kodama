@@ -111,6 +111,9 @@ func TestResolveDynamic_Nil(t *testing.T) {
 		{
 			subdomain: "192-169-0-0.example.com",
 		},
+		{
+			subdomain: "104-18-26-120.example.com",
+		},
 	}
 
 	for _, tt := range tests {
