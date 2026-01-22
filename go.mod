@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/alecthomas/kong v1.13.0
-	github.com/miekg/dns v1.1.70
+	github.com/miekg/dns v1.1.72
 	github.com/stretchr/testify v1.11.1
 	golang.org/x/sync v0.19.0
 )
